@@ -2,18 +2,18 @@
 
 This Python script is a network security tool that performs ARP (Address Resolution Protocol) spoofing. ARP spoofing is a technique used to manipulate network traffic by sending false ARP messages, allowing an attacker to redirect traffic between two devices.
 
-### Features
+## Features
 - Spoofs ARP packets to manipulate network traffic between target and gateway devices.
 - Retrieves MAC addresses associated with IP addresses using ARP requests.
 - Restores the ARP tables of target and gateway devices to their original state.
 - Command-line interface with options to specify target and gateway IP addresses.
 
-### Requirements
+## Requirements
 - Python 3.x
 - `scapy` library
 - `optparse` module
 
-### Usage
+## Usage
 1. Clone the repository:
     ```commandline
     git clone https://github.com/SaherMuhamed/arp-spoofing-mitm.git
@@ -37,17 +37,17 @@ This Python script is a network security tool that performs ARP (Address Resolut
 
 5. To stop the script, press Ctrl + C. The ARP tables of the target and gateway devices will be restored to their original state.
 
-### Screenshot
+## Screenshot
 ![](screenshots/arp-spoof.png)
 
-### Disclaimer
+## Disclaimer
 This tool is intended for educational and testing purposes only. Unauthorized use of this tool on networks or devices without proper authorization is illegal. The developer is not responsible for any misuse or damage caused by this tool.
 
-### Contributing
+## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to submit a pull request.
 
-### Acknowledgements
+## Acknowledgements
 This script was inspired by the concepts of ARP spoofing and the usage of the scapy library.
 
-### Contact
+## Contact
 For any inquiries or questions, please contact me at sahermuhamed21@gmail.com.
