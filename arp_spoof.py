@@ -73,6 +73,6 @@ try:
         time.sleep(1.7)
 except KeyboardInterrupt:
     print("\n[*] Detected 'ctrl + c' pressed, program terminated.")
-    print("\n[-] Cleaning up and re-arping targets...\n")
+    print("[*] Cleaning up and re-arping targets...\n")
     for _ in range(3):
         restore(destination_ip=target_ip_address, source_ip=gateway_ip_address)
