@@ -9,7 +9,7 @@ import scapy.all as scapy
 if sys.version_info < (3, 0):
     sys.stderr.write("\nYou need python 3.0 or later to run this script\n")
     sys.stderr.write(
-        "Please update and make sure you use the command python3 network_scanner.py -r <ip/24>\n\n")
+        "Please update and make sure you use the command python3 arp_spoof.py -t <target_ip> -g <gateway_ip>\n\n")
     sys.exit(0)
 
 
