@@ -38,7 +38,7 @@ This Python script is a network security tool that performs ARP (Address Resolut
 5. To stop the script, press Ctrl + C. The ARP tables of the target and gateway devices will be restored to their original state.
 
 ## Screenshot
-![](screenshots/arp-spoof.png)
+![](screenshots/arp_spoof.png)
 
 ## Disclaimer
 This tool is intended for educational and testing purposes only. Unauthorized use of this tool on networks or devices without proper authorization is illegal. The developer is not responsible for any misuse or damage caused by this tool.
