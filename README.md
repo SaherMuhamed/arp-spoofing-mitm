@@ -1,6 +1,6 @@
 # ARP Spoofing Tool
 
-This Python script is a network security tool that performs ARP (Address Resolution Protocol) spoofing. ARP spoofing is a technique used to manipulate network traffic by sending false ARP messages, allowing an attacker to redirect traffic between two devices.
+This Python script is a network security tool that performs ARP (Address Resolution Protocol) spoofing. ARP spoofing is a technique used to manipulate network traffic by sending false ARP responses, allowing an attacker to redirect traffic between two devices.
 
 ## Features
 - Spoofs ARP packets to manipulate network traffic between target and gateway devices.
@@ -11,7 +11,7 @@ This Python script is a network security tool that performs ARP (Address Resolut
 ## Requirements
 - Python 3.x
 - `scapy` library
-- `optparse` module
+- `argparse` module
 
 ## Usage
 1. Clone the repository:
@@ -21,7 +21,7 @@ This Python script is a network security tool that performs ARP (Address Resolut
 
 2. Navigate to the project directory:
     ```commandline
-    cd arp-spoofing-tool
+    cd arp-spoofing-mitm
     ```
    
 3. Install the required dependencies:
@@ -31,7 +31,7 @@ This Python script is a network security tool that performs ARP (Address Resolut
 
 4. Run the script with the appropriate command-line options:
     ```commandline
-    python3 arp_spoofing.py -t <target_ip_address> -g <gateway_ip_address>
+    python3 arp_spoof.py -t <target_ip_address> -g <gateway_ip_address>
     ```
     Replace `<target_ip_address>` with the IP address of the target device and `<gateway_ip_address>` with the IP address of the gateway device.
 
@@ -44,10 +44,10 @@ This Python script is a network security tool that performs ARP (Address Resolut
 This tool is intended for educational and testing purposes only. Unauthorized use of this tool on networks or devices without proper authorization is illegal. The developer is not responsible for any misuse or damage caused by this tool.
 
 ## Contributing
-Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to submit a pull request.
+Contributions are welcome! If you find any issues or have suggestions for improvements, feel free to submit a pull request.
 
 ## Acknowledgements
-This script was inspired by the concepts of ARP spoofing and the usage of the scapy library.
+This script was inspired by the concepts of **ARP** spoofing and the usage of the scapy library.
 
 ## Contact
 For any inquiries or questions, please contact me at sahermuhamed21@gmail.com.
