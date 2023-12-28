@@ -8,7 +8,6 @@ This Python script is a network security tool that performs ARP (Address Resolut
 - Spoofs ARP packets to manipulate network traffic between target and gateway devices.
 - Retrieves MAC addresses associated with IP addresses using ARP requests.
 - Restores the ARP tables of target and gateway devices to their original state.
-- Command-line interface with options to specify target and gateway IP addresses.
 
 ## Requirements
 - Python 3.x
