@@ -36,7 +36,7 @@ This Python script is a network security tool that performs ARP (Address Resolut
     ```
     Replace `<target_ip_address>` with the IP address of the target device and `<gateway_ip_address>` with the IP address of the gateway device.
 
-5. To stop the script, press Ctrl + C. The ARP tables of the target and gateway devices will be restored to their original state.
+5. To stop the script, press `Ctrl + C`. The ARP tables of the target and gateway devices will be restored to their original state.
 
 ## Screenshot
 ![](https://github.com/SaherMuhamed/arp-spoofing-mitm/blob/master/screenshots/Screenshot%20from%202023-12-28%2008-24-35.png)
