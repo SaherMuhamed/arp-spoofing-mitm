@@ -42,7 +42,7 @@ def fetch_mac_address(ip_address, timeout=7):
     for sent_packet, received_packet in answered:
         # check if the packet contains an ARP layer
         if scapy.ARP in received_packet:
-            device_info = {"mac": received_packet[scapy.Ether].src}  # get the size of the packet
+            device_info = {"mac": received_packet[scapy.Ether].src}
             devices_mac_list.append(device_info)
 
     return devices_mac_list
