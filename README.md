@@ -1,5 +1,7 @@
 # ARP Spoofing Tool
 
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)  ![Kali](https://img.shields.io/badge/Kali-268BEE?style=for-the-badge&logo=kalilinux&logoColor=white)  ![Windows](https://img.shields.io/badge/Windows-0078D4.svg?style=for-the-badge&logo=Windows&logoColor=white)
+
 This Python script is a network security tool that performs ARP (Address Resolution Protocol) spoofing. ARP spoofing is a technique used to manipulate network traffic by sending false ARP responses, allowing an attacker to redirect traffic between two devices.
 
 ## Features
@@ -45,9 +47,3 @@ This tool is intended for educational and testing purposes only. Unauthorized us
 
 ## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvements, feel free to submit a pull request.
-
-## Acknowledgements
-This script was inspired by the concepts of **ARP** spoofing and the usage of the scapy library.
-
-## Contact
-For any inquiries or questions, please contact me at sahermuhamed21@gmail.com.
