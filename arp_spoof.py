@@ -90,13 +90,13 @@ def restore(destination_ip, source_ip):
 def spoof_target(target_ip, gateway_ip, stealth_mode):
     while True:
         spoof(target_ip=target_ip, spoof_ip=gateway_ip, stealth_mode=stealth_mode)
-        time.sleep(random.uniform(1.5, 2.0))
+        time.sleep(random.uniform(1.5, 2.0))  # Randomized delay for stealth mode
 
 
 def spoof_gateway(target_ip, gateway_ip, stealth_mode):
     while True:
         spoof(target_ip=gateway_ip, spoof_ip=target_ip, stealth_mode=stealth_mode)
-        time.sleep(random.uniform(1.5, 2.0))
+        time.sleep(random.uniform(1.5, 2.0))  # Randomized delay for stealth mode
 
 
 def print_side_by_side(target_ip, target_mac, target_vendor, gateway_ip, gateway_mac, gateway_vendor):
