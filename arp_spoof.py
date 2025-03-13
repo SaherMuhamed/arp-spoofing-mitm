@@ -7,10 +7,11 @@ import logging
 import threading
 import subprocess
 
-from utilities.vendor import VendorLookup
-from argparse import ArgumentParser
 import scapy.all as scapy
+from argparse import ArgumentParser
 from colorama import Fore, Style, init
+from utilities.banner import print_banner
+from utilities.vendor import VendorLookup
 
 if sys.version_info < (3, 0):
     sys.stderr.write("\nYou need python 3.0 or later to run this script\n")
@@ -18,11 +19,11 @@ if sys.version_info < (3, 0):
         "Please update and make sure you use the command python3 arp_spoof.py -t <target_ip> -g <gateway_ip>\n\n")
     sys.exit(0)
 
+init(autoreset=True)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
 vendor_lookup = VendorLookup(json_file_path="assets/mac-vendors-export.json")
-init(autoreset=True)
 
 
 def args():
@@ -98,19 +99,6 @@ def spoof_gateway(target_ip, gateway_ip, stealth_mode):
         time.sleep(random.uniform(1.5, 2.0))
 
 
-def print_banner():
-    print(Fore.CYAN + Style.BRIGHT + """
-     █████╗ ██████╗ ██████╗     ███████╗██████╗  ██████╗  ██████╗ ███████╗
-    ██╔══██╗██╔══██╗██╔══██╗    ██╔════╝██╔══██╗██╔═══██╗██╔═══██╗██╔════╝
-    ███████║██████╔╝██████╔╝    ███████╗██████╔╝██║   ██║██║   ██║█████╗  
-    ██╔══██║██╔══██╗██╔═══╝     ╚════██║██╔═══╝ ██║   ██║██║   ██║██╔══╝  
-    ██║  ██║██║  ██║██║         ███████║██║     ╚██████╔╝╚██████╔╝██║     
-    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝         ╚══════╝╚═╝      ╚═════╝  ╚═════╝ ╚═╝     
-        Github: https://github.com/SaherMuhamed/arp-spoofing-mitm
-    """ + Style.RESET_ALL + Fore.YELLOW + Style.BRIGHT + "\t\t  By Saher Muhamed - version 2.1.1" + Style.RESET_ALL)
-    print(Fore.YELLOW + Style.BRIGHT + "──────────────────────────────────────────────────────────────────────────" + Style.RESET_ALL)
-
-
 def print_side_by_side(target_ip, target_mac, target_vendor, gateway_ip, gateway_mac, gateway_vendor):
     target_info = (
         f"{Fore.GREEN}[+] Target Information:{Style.RESET_ALL}\n"
@@ -143,6 +131,7 @@ stealth_mode = option.stealth_mode
 
 print_banner()
 packets_counter = 0
+
 try:
     target_mac = fetch_mac_address(ip_address=target_ip_address)[0]["mac"]
     gateway_mac = fetch_mac_address(ip_address=gateway_ip_address)[0]["mac"]
@@ -173,7 +162,7 @@ try:
     print(Fore.MAGENTA + "\n[+] ARP Spoofing Started. Press Ctrl+C to stop" + Style.RESET_ALL)
     while True:
         packets_counter += 2
-        print(Fore.YELLOW + f"\r[+] Sent {packets_counter} ARP Spoofed Packets", end='', flush=True)
+        print(Fore.YELLOW + f"\r[+] Sent {packets_counter} ARP Spoofed Packet", end='', flush=True)
         time.sleep(1.7)
 except KeyboardInterrupt:
     print(Fore.RED + "\n\n[!] Detected 'Ctrl + C'. Terminating..." + Style.RESET_ALL)
