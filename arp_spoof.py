@@ -169,5 +169,5 @@ except KeyboardInterrupt:
     print(Fore.RED + "[!] Cleaning up and restoring ARP tables..." + Style.RESET_ALL)
     for _ in range(3):
         restore(destination_ip=target_ip_address, source_ip=gateway_ip_address)
-    print(Fore.RED + "[!] ARP tables restored. Exiting" + Style.RESET_ALL)
+    print(Fore.RED + "[!] ARP tables restored. Exiting\n" + Style.RESET_ALL)
     sys.exit(0)
